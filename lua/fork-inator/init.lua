@@ -1,4 +1,5 @@
 local Config = require('fork-inator.config')
+local Workflow = require('fork-inator.workflow')
 
 local M = {}
 
@@ -7,6 +8,7 @@ function M:setup(opts)
     if not opts then
         opts = Config.getDefaultConfig()
     end
+    Workflow.listDefinitions()
 end
 
 return M
