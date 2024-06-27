@@ -1,5 +1,5 @@
-local Path = require('plenary.path')
-local ScanDir = require('plenary.scandir')
+local Path = require("plenary.path")
+local ScanDir = require("plenary.scandir")
 
 ---@class ForkInatorWorkflowDefinititon
 ---@field name string
@@ -30,7 +30,7 @@ function M.listDefinitions()
         add_dirs = false,
         search_pattern = function(file)
             return string.find(file, ".lua", -4, true) ~= nil
-        end
+        end,
     })
 
     for _, file in pairs(workflowFiles) do

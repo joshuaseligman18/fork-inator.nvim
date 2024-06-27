@@ -1,5 +1,5 @@
-local Config = require('fork-inator.config')
-local Workflow = require('fork-inator.workflow')
+local Config = require("fork-inator.config")
+local Workflow = require("fork-inator.workflow")
 
 local M = {}
 
