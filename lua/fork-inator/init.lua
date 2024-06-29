@@ -8,7 +8,7 @@ function M:setup(opts)
     if not opts then
         opts = Config.getDefaultConfig()
     end
-    Workflow.listDefinitions()
+    Workflow:loadWorkflows()
 end
 
 return M
