@@ -1,14 +1,14 @@
-local Config = require("fork-inator.config")
-local Workflow = require("fork-inator.workflow")
+local FIConfig = require("fork-inator.config")
+local FIWorkflow = require("fork-inator.workflow")
 
 local M = {}
 
 ---@param opts ForkInatorConfig
 function M:setup(opts)
-    if not opts then
-        opts = Config.getDefaultConfig()
+    if opts == nil then
+        opts = FIConfig.getDefaultConfig()
     end
-    Workflow:loadWorkflows()
+    FIWorkflow:loadWorkflows()
 end
 
 return M

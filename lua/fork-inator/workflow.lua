@@ -1,10 +1,12 @@
 local Path = require("plenary.path")
 local ScanDir = require("plenary.scandir")
+local FIUtil = require("fork-inator.util")
 
 ---@class ForkInatorWorkflowDefinititon
----@field name string
----@field workDir string
----@field script string
+---@field name string Name of the workflow
+---@field access string[] Array of NeoVim buffers (absolute paths) which the workflow can be called from (default global if not provided)
+---@field workDir string Working directory of the script
+---@field script string Script to run
 
 ---@class ForkInatorWorkflow
 ---@field definition ForkInatorWorkflowDefinititon
@@ -18,8 +20,6 @@ ForkInatorStatus = {
 
 local GLOBAL_WORKFLOW_DIR = vim.fn.stdpath("config")
     .. "/lua/fork-inator-workflows"
-local LOCAL_WORKFLOW_DIR = vim.api.nvim_buf_get_name(0)
-    .. "/fork-inator-workflows"
 
 local M = {}
 
@@ -28,7 +28,7 @@ function M:loadWorkflows()
     local function readWorkflowFiles(loadPath)
         local workflowFiles = ScanDir.scan_dir(loadPath, {
             add_dirs = false,
-            searc__pattern = function(file)
+            search_pattern = function(file)
                 return string.find(file, ".lua", -4, true) ~= nil
             end,
         })
@@ -40,18 +40,20 @@ function M:loadWorkflows()
 
             ---@type ForkInatorWorkflowDefinititon
             local def = require(requireModule)
-            print(def.name)
+            if
+                def.access == nil
+                or FIUtil.hasValue(def.access, vim.api.nvim_buf_get_name(0))
+            then
+                print(def.name, def.script)
+            end
         end
     end
 
     local globalWorkflowPath = Path.new(GLOBAL_WORKFLOW_DIR)
     if globalWorkflowPath:exists() and globalWorkflowPath:is_dir() then
         readWorkflowFiles(globalWorkflowPath:absolute())
-    end
-
-    local localWorkflowPath = Path.new(LOCAL_WORKFLOW_DIR)
-    if localWorkflowPath:exists() and localWorkflowPath:is_dir() then
-        readWorkflowFiles(localWorkflowPath:absolute())
+    else
+        error("Missing workflow directory: " .. GLOBAL_WORKFLOW_DIR, 1)
     end
 end
 
