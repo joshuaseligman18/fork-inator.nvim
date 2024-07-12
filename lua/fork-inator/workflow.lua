@@ -1,6 +1,7 @@
 local Path = require("plenary.path")
 local ScanDir = require("plenary.scandir")
 local FIUtil = require("fork-inator.util")
+local FISession = require("fork-inator.session")
 
 ---@class ForkInatorWorkflowDefinititon
 ---@field name string Name of the workflow
@@ -14,8 +15,9 @@ local FIUtil = require("fork-inator.util")
 
 ---@enum ForkInatorStatus
 ForkInatorStatus = {
-    RUNNING = 0,
-    DEAD = 1,
+    NOT_STARTED = 0,
+    RUNNING = 1,
+    DEAD = 2,
 }
 
 local GLOBAL_WORKFLOW_DIR = vim.fn.stdpath("config")
@@ -45,6 +47,7 @@ function M:loadWorkflows()
                 or FIUtil.hasValue(def.access, vim.api.nvim_buf_get_name(0))
             then
                 print(def.name, def.script)
+                print(FISession.dataFolder)
             end
         end
     end
