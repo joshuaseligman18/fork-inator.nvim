@@ -25,6 +25,9 @@ local GLOBAL_WORKFLOW_DIR = vim.fn.stdpath("config")
 
 local M = {}
 
+---@type ForkInatorWorkflow[]
+M.workflows = {}
+
 function M:loadWorkflows()
     ---@param loadPath string
     local function readWorkflowFiles(loadPath)
@@ -46,8 +49,10 @@ function M:loadWorkflows()
                 def.access == nil
                 or FIUtil.hasValue(def.access, vim.api.nvim_buf_get_name(0))
             then
-                print(def.name, def.script)
-                print(FISession.dataFolder)
+                table.insert(self.workflows, {
+                    definition = def,
+                    status = ForkInatorStatus.NOT_STARTED,
+                })
             end
         end
     end
@@ -55,6 +60,10 @@ function M:loadWorkflows()
     local globalWorkflowPath = Path.new(GLOBAL_WORKFLOW_DIR)
     if globalWorkflowPath:exists() and globalWorkflowPath:is_dir() then
         readWorkflowFiles(globalWorkflowPath:absolute())
+
+        for _, hi in ipairs(self.workflows) do
+            print(hi.definition.name)
+        end
     else
         error("Missing workflow directory: " .. GLOBAL_WORKFLOW_DIR, 1)
     end
