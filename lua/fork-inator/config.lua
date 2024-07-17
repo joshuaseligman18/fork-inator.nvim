@@ -3,13 +3,22 @@
 
 local M = {}
 
----@param opts ForkInatorConfig
 ---@return ForkInatorConfig
-function M.generateCompleteConfig(opts)
-    local defaultConfig = M.getDefaultConfig()
+local function getDefaultConfig()
+    ---@type ForkInatorConfig
+    local defaultConfig = {
+        logRetention = 10800,
+    }
+    return defaultConfig
+end
+
+---@param opts ForkInatorConfig
+function M:loadConfig(opts)
+    local defaultConfig = getDefaultConfig()
 
     if opts == nil then
-        return defaultConfig
+        self.config = defaultConfig
+        return
     end
 
     ---@type ForkInatorConfig
@@ -17,16 +26,7 @@ function M.generateCompleteConfig(opts)
         logRetention = opts.logRetention or defaultConfig.logRetention
     }
 
-    return completeConfig
-end
-
----@return ForkInatorConfig
-function M.getDefaultConfig()
-    ---@type ForkInatorConfig
-    local defaultConfig = {
-        logRetention = 10800,
-    }
-    return defaultConfig
+    self.config = completeConfig
 end
 
 return M

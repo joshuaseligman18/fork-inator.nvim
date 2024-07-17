@@ -6,8 +6,7 @@ local M = {}
 
 ---@param opts ForkInatorConfig
 function M:setup(opts)
-    self.config = FIConfig.generateCompleteConfig(opts)
-    print(self.config.logRetention)
+    FIConfig:loadConfig(opts)
     FISession:initializeSession()
     FIWorkflow:loadWorkflows()
 end
