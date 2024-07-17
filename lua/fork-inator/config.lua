@@ -23,7 +23,7 @@ function M:loadConfig(opts)
 
     ---@type ForkInatorConfig
     local completeConfig = {
-        logRetention = opts.logRetention or defaultConfig.logRetention
+        logRetention = opts.logRetention or defaultConfig.logRetention,
     }
 
     self.config = completeConfig
