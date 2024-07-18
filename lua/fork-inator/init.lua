@@ -10,6 +10,7 @@ function M.setup(opts)
     FIConfig:loadConfig(opts)
     FISession:initializeSession()
     FIWorkflow:loadWorkflows()
+    FIWindow:init()
 end
 
 function M.toggle()

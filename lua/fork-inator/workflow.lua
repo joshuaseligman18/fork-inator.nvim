@@ -11,6 +11,7 @@ local FISession = require("fork-inator.session")
 
 ---@class ForkInatorWorkflow
 ---@field definition ForkInatorWorkflowDefinititon
+---@field file string
 ---@field status ForkInatorStatus
 
 ---@enum ForkInatorStatus
@@ -51,6 +52,7 @@ function M:loadWorkflows()
             then
                 table.insert(self.workflows, {
                     definition = def,
+                    file = requireModule .. ".lua",
                     status = ForkInatorStatus.NOT_STARTED,
                 })
             end
@@ -60,10 +62,6 @@ function M:loadWorkflows()
     local globalWorkflowPath = Path.new(GLOBAL_WORKFLOW_DIR)
     if globalWorkflowPath:exists() and globalWorkflowPath:is_dir() then
         readWorkflowFiles(globalWorkflowPath:absolute())
-
-        for _, hi in ipairs(self.workflows) do
-            print(hi.definition.name)
-        end
     else
         error("Missing workflow directory: " .. GLOBAL_WORKFLOW_DIR, 1)
     end
