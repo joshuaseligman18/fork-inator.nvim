@@ -5,34 +5,21 @@ local FIWorkflow = require("fork-inator.workflow")
 
 local M = {}
 
-local workflowBufnr = vim.api.nvim_create_buf(false, true)
-local statusBufnr = vim.api.nvim_create_buf(false, true)
-
-local function setWorkflowBufnr()
-    local bufnrContents = {}
-    for i, workflow in ipairs(FIWorkflow.workflows) do
-        table.insert(bufnrContents, "" .. i .. ". " .. workflow.definition.name)
-    end
-    vim.api.nvim_buf_set_lines(workflowBufnr, 0, -1, true, bufnrContents)
+function M:init()
+    self.isOpen = false
 end
 
-local function setStatusBufnr(workflowIdx)
-    if #FIWorkflow.workflows == 0 then
-        return
+function M:toggle()
+    if self.isOpen then
+        self.layout:unmount()
+    else
+        self:_createPopup()
     end
-
-    local selectedWorkflow = FIWorkflow.workflows[workflowIdx]
-    local bufnrContents = {
-        "Name: " .. selectedWorkflow.definition.name,
-        "File: " .. selectedWorkflow.file,
-        "WorkDir: " .. selectedWorkflow.definition.workDir,
-        "Status: " .. selectedWorkflow.status,
-    }
-    vim.api.nvim_buf_set_lines(statusBufnr, 0, -1, true, bufnrContents)
+    self.isOpen = not self.isOpen
 end
 
-function M:createPopup()
-    local workflowPopup = Popup({
+function M:_createPopup()
+    self.workflowPopup = Popup({
         enter = true,
         focusable = true,
         border = {
@@ -46,10 +33,10 @@ function M:createPopup()
             modifiable = false,
             readonly = true,
         },
-        bufnr = workflowBufnr,
     })
+    self:_setWorkflowBufnr()
 
-    local statusPopup = Popup({
+    self.statusPopup = Popup({
         enter = false,
         focusable = false,
         border = {
@@ -63,7 +50,6 @@ function M:createPopup()
             modifiable = true,
             readonly = true,
         },
-        bufnr = statusBufnr,
     })
 
     self.layout = Layout(
@@ -75,42 +61,59 @@ function M:createPopup()
             },
         },
         Layout.Box({
-            Layout.Box(workflowPopup, { size = "30%" }),
-            Layout.Box(statusPopup, { size = "70%" }),
+            Layout.Box(self.workflowPopup, { size = "30%" }),
+            Layout.Box(self.statusPopup, { size = "70%" }),
         }, { dir = "row" })
     )
+    self.layout:mount()
 
-    workflowPopup:on(event.CursorMoved, function()
+    self.workflowPopup:on(event.CursorMoved, function()
         local index = vim.api.nvim_win_get_cursor(0)[1]
-        setStatusBufnr(index)
+        self:_setStatusBufnr(index)
     end)
 
-    workflowPopup:on(event.BufLeave, function()
+    self.workflowPopup:on(event.BufLeave, function()
         self:toggle()
     end)
 
-    workflowPopup:map("n", "<esc>", function()
+    self.workflowPopup:map("n", "<esc>", function()
         self:toggle()
     end, {})
 end
 
-function M:init()
-    setWorkflowBufnr()
-    self:createPopup()
-    self.isOpen = false
-    self.mounted = false
+function M:_setWorkflowBufnr()
+    local bufnrContents = {}
+    for i, workflow in ipairs(FIWorkflow.workflows) do
+        table.insert(bufnrContents, "" .. i .. ". " .. workflow.definition.name)
+    end
+    vim.api.nvim_buf_set_lines(
+        self.workflowPopup.bufnr,
+        0,
+        -1,
+        true,
+        bufnrContents
+    )
 end
 
-function M:toggle()
-    if self.isOpen then
-        self.layout:hide()
-    elseif not self.mounted then
-        self.layout:mount()
-        self.mounted = true
-    else
-        self.layout:show()
+function M:_setStatusBufnr(workflowIdx)
+    if #FIWorkflow.workflows == 0 then
+        return
     end
-    self.isOpen = not self.isOpen
+
+    local selectedWorkflow = FIWorkflow.workflows[workflowIdx]
+    local bufnrContents = {
+        "Name: " .. selectedWorkflow.definition.name,
+        "File: " .. selectedWorkflow.file,
+        "WorkDir: " .. selectedWorkflow.definition.workDir,
+        "Status: " .. selectedWorkflow.status,
+    }
+    vim.api.nvim_buf_set_lines(
+        self.statusPopup.bufnr,
+        0,
+        -1,
+        true,
+        bufnrContents
+    )
 end
 
 return M
