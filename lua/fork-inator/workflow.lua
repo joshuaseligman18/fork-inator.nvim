@@ -83,20 +83,32 @@ function M:_createWorkflowScripts()
         file:write(workflow.definition.script)
         file:close()
 
-        local res = vim.system({ "chmod", "544", scriptFileName }, { text = true })
+        local res = vim.system(
+            { "chmod", "544", scriptFileName },
+            { text = true }
+        )
             :wait()
-        assert(res.code == 0, "Failed to update permission of " .. scriptFileName)
+        assert(
+            res.code == 0,
+            "Failed to update permission of " .. scriptFileName
+        )
         workflow.scriptFile = scriptFileName
 
         local stdoutFileName = workflowFilePrefix .. "-stdout.log"
         local stdoutFile = io.open(stdoutFileName, "w")
-        assert(stdoutFile ~= nil, "Failed to create stdout log file " .. stdoutFileName)
+        assert(
+            stdoutFile ~= nil,
+            "Failed to create stdout log file " .. stdoutFileName
+        )
         stdoutFile:close()
         workflow.stdoutFile = stdoutFileName
 
         local stderrFileName = workflowFilePrefix .. "-stderr.log"
         local stderrFile = io.open(stderrFileName, "w")
-        assert(stderrFile ~= nil, "Failed to create stderr log file " .. stderrFileName)
+        assert(
+            stderrFile ~= nil,
+            "Failed to create stderr log file " .. stderrFileName
+        )
         stderrFile:close()
         workflow.stderrFile = stderrFileName
     end
@@ -108,17 +120,34 @@ function M:startWorkflow(index)
         return
     end
 
-
     local selectedWorkflow = self.workflows[index]
     if selectedWorkflow.status == ForkInatorStatus.RUNNING then
-        print("Workflow " .. selectedWorkflow.definition.name .. " is already running")
+        print(
+            "Workflow "
+                .. selectedWorkflow.definition.name
+                .. " is already running"
+        )
         return
     end
 
-
-    assert(selectedWorkflow.scriptFile ~= nil, "Script file for " .. selectedWorkflow.definition.name .. " should not be nil")
-    assert(selectedWorkflow.stdoutFile ~= nil, "Stdout log file for " .. selectedWorkflow.definition.name .. " should not be nil")
-    assert(selectedWorkflow.stderrFile ~= nil, "Stderr log file for " .. selectedWorkflow.definition.name .. " should not be nil")
+    assert(
+        selectedWorkflow.scriptFile ~= nil,
+        "Script file for "
+            .. selectedWorkflow.definition.name
+            .. " should not be nil"
+    )
+    assert(
+        selectedWorkflow.stdoutFile ~= nil,
+        "Stdout log file for "
+            .. selectedWorkflow.definition.name
+            .. " should not be nil"
+    )
+    assert(
+        selectedWorkflow.stderrFile ~= nil,
+        "Stderr log file for "
+            .. selectedWorkflow.definition.name
+            .. " should not be nil"
+    )
 
     local stdoutFile = io.open(selectedWorkflow.stdoutFile, "a")
     assert(stdoutFile ~= nil, "Failed to open " .. selectedWorkflow.stdoutFile)
@@ -129,27 +158,31 @@ function M:startWorkflow(index)
 
     selectedWorkflow.status = ForkInatorStatus.RUNNING
 
-    vim.system(
-        { selectedWorkflow.scriptFile },
-        { cwd = selectedWorkflow.definition.workDir, text = true,
-            stdout = function(err, data)
-                if data ~= nil and err == nil then
-                    stdoutFile:write(data)
-                end
-            end,
-            stderr = function(err, data)
-                if data ~= nil and err == nil then
-                    stderrFile:write(data)
-                end
+    vim.system({ selectedWorkflow.scriptFile }, {
+        cwd = selectedWorkflow.definition.workDir,
+        text = true,
+        stdout = function(err, data)
+            if data ~= nil and err == nil then
+                stdoutFile:write(data)
             end
-        },
-        function (obj)
-            stdoutFile:write("Exited with status code " .. obj.code .. " at " .. os.date() .. "\n")
-            stdoutFile:close()
-            stderrFile:close()
-            selectedWorkflow.status = ForkInatorStatus.DEAD
-        end
-    )
+        end,
+        stderr = function(err, data)
+            if data ~= nil and err == nil then
+                stderrFile:write(data)
+            end
+        end,
+    }, function(obj)
+        stdoutFile:write(
+            "Exited with status code "
+                .. obj.code
+                .. " at "
+                .. os.date()
+                .. "\n"
+        )
+        stdoutFile:close()
+        stderrFile:close()
+        selectedWorkflow.status = ForkInatorStatus.DEAD
+    end)
 end
 
 return M
