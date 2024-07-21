@@ -2,6 +2,7 @@ local FIConfig = require("fork-inator.config")
 local FIWorkflow = require("fork-inator.workflow")
 local FISession = require("fork-inator.session")
 local FIWindow = require("fork-inator.window")
+local FIUtil = require("fork-inator.util")
 
 local M = {}
 

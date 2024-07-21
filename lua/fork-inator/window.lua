@@ -2,6 +2,7 @@ local Popup = require("nui.popup")
 local Layout = require("nui.layout")
 local event = require("nui.utils.autocmd").event
 local FIWorkflow = require("fork-inator.workflow")
+local FIConfig = require("fork-inator.config")
 
 local M = {}
 
@@ -79,6 +80,12 @@ function M:_createPopup()
     self.workflowPopup:map("n", "<esc>", function()
         self:toggle()
     end, {})
+
+    self.workflowPopup:map("n", FIConfig.config.keyMap.startWorkflow, function()
+        local index = vim.api.nvim_win_get_cursor(0)[1]
+        print("Start workflow " .. index)
+        FIWorkflow:startWorkflow(index)
+    end, {})
 end
 
 function M:_setWorkflowBufnr()
@@ -103,8 +110,8 @@ function M:_setStatusBufnr(workflowIdx)
     local selectedWorkflow = FIWorkflow.workflows[workflowIdx]
     local bufnrContents = {
         "Name: " .. selectedWorkflow.definition.name,
-        "File: " .. selectedWorkflow.file,
-        "WorkDir: " .. selectedWorkflow.definition.workDir,
+        "Source file: " .. selectedWorkflow.sourceFile,
+        "Work directory: " .. selectedWorkflow.definition.workDir,
         "Status: " .. selectedWorkflow.status,
     }
     vim.api.nvim_buf_set_lines(
