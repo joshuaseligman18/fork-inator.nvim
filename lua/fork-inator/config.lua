@@ -4,6 +4,7 @@
 
 ---@class ForkInatorKeymaps
 ---@field startWorkflow string Keymap to start a workflow
+---@field killWorkflow string Keymap to kill a workflow
 
 local M = {}
 
@@ -13,7 +14,8 @@ local function getDefaultConfig()
     local defaultConfig = {
         logRetention = 10800,
         keyMap = {
-            startWorkflow = "<leader>s",
+            startWorkflow = "<leader>fs",
+            killWorkflow = "<leader>fk",
         },
     }
     return defaultConfig
@@ -32,6 +34,8 @@ function M:loadConfig(opts)
     local finalKeymap = {
         startWorkflow = opts.keyMap.startWorkflow
             or defaultConfig.keyMap.startWorkflow,
+        killWorkflow = opts.keyMap.killWorkflow
+            or defaultConfig.keyMap.killWorkflow,
     }
 
     ---@type ForkInatorConfig

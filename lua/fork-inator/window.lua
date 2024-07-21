@@ -83,8 +83,12 @@ function M:_createPopup()
 
     self.workflowPopup:map("n", FIConfig.config.keyMap.startWorkflow, function()
         local index = vim.api.nvim_win_get_cursor(0)[1]
-        print("Start workflow " .. index)
         FIWorkflow:startWorkflow(index)
+    end, {})
+
+    self.workflowPopup:map("n", FIConfig.config.keyMap.killWorkflow, function()
+        local index = vim.api.nvim_win_get_cursor(0)[1]
+        FIWorkflow:killWorkflow(index)
     end, {})
 end
 

@@ -16,6 +16,7 @@ local FISession = require("fork-inator.session")
 ---@field stdoutFile string
 ---@field stderrFile string
 ---@field status ForkInatorStatus
+---@field job any
 
 ---@enum ForkInatorStatus
 ForkInatorStatus = {
@@ -158,7 +159,7 @@ function M:startWorkflow(index)
 
     selectedWorkflow.status = ForkInatorStatus.RUNNING
 
-    vim.system({ selectedWorkflow.scriptFile }, {
+    selectedWorkflow.job = vim.system({ selectedWorkflow.scriptFile }, {
         cwd = selectedWorkflow.definition.workDir,
         text = true,
         stdout = function(err, data)
@@ -185,4 +186,20 @@ function M:startWorkflow(index)
     end)
 end
 
+---@param index number Index of the workflow to kill
+function M:killWorkflow(index)
+    if index <= 0 or index > #self.workflows then
+        return
+    end
+
+    local selectedWorkflow = self.workflows[index]
+    if selectedWorkflow.status ~= ForkInatorStatus.RUNNING then
+        print(
+            "Workflow " .. selectedWorkflow.definition.name .. " is not running"
+        )
+        return
+    end
+
+    selectedWorkflow.job:wait(0)
+end
 return M
