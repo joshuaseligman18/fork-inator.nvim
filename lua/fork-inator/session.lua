@@ -56,7 +56,7 @@ function M:cleanUpOldSessions()
         })
 
         if self.sessionTime - folderTime > self.config.logRetention then
-            Path.new(logFolder):rmdir()
+            Path.new(logFolder):rm({ recursive = true })
         end
     end
 end

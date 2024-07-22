@@ -21,11 +21,11 @@ end
 
 ---@param sourceIndex number The workflow index requesting a status buffer update
 function M:requestStatusUpdate(sourceIndex)
-    vim.schedule(function()
-        if self.workflowIndex == sourceIndex then
+    if self.workflowIndex == sourceIndex then
+        vim.schedule(function()
             self:_setStatusBufnr(sourceIndex)
-        end
-    end)
+        end)
+    end
 end
 
 function M:_createPopup()
@@ -90,13 +90,23 @@ function M:_createPopup()
         self:toggle()
     end, {})
 
-    self.workflowPopup:map("n", self.session.config.keyMap.startWorkflow, function()
-        self.session.workflow:startWorkflow(self.workflowIndex)
-    end, {})
+    self.workflowPopup:map(
+        "n",
+        self.session.config.keyMap.startWorkflow,
+        function()
+            self.session.workflow:startWorkflow(self.workflowIndex)
+        end,
+        {}
+    )
 
-    self.workflowPopup:map("n", self.session.config.keyMap.killWorkflow, function()
-        self.session.workflow:killWorkflow(self.workflowIndex)
-    end, {})
+    self.workflowPopup:map(
+        "n",
+        self.session.config.keyMap.killWorkflow,
+        function()
+            self.session.workflow:killWorkflow(self.workflowIndex)
+        end,
+        {}
+    )
 end
 
 function M:_setWorkflowBufnr()
