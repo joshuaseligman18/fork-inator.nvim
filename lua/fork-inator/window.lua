@@ -1,13 +1,13 @@
 local Popup = require("nui.popup")
 local Layout = require("nui.layout")
 local event = require("nui.utils.autocmd").event
-local FIWorkflow = require("fork-inator.workflow")
-local FIConfig = require("fork-inator.config")
 
 local M = {}
 
-function M:init()
+---@param session any The parent session
+function M:init(session)
     self.isOpen = false
+    self.session = session
 end
 
 function M:toggle()
@@ -17,6 +17,15 @@ function M:toggle()
         self:_createPopup()
     end
     self.isOpen = not self.isOpen
+end
+
+---@param sourceIndex number The workflow index requesting a status buffer update
+function M:requestStatusUpdate(sourceIndex)
+    vim.schedule(function()
+        if self.workflowIndex == sourceIndex then
+            self:_setStatusBufnr(sourceIndex)
+        end
+    end)
 end
 
 function M:_createPopup()
@@ -69,8 +78,8 @@ function M:_createPopup()
     self.layout:mount()
 
     self.workflowPopup:on(event.CursorMoved, function()
-        local index = vim.api.nvim_win_get_cursor(0)[1]
-        self:_setStatusBufnr(index)
+        self.workflowIndex = vim.api.nvim_win_get_cursor(0)[1]
+        self:_setStatusBufnr(self.workflowIndex)
     end)
 
     self.workflowPopup:on(event.BufLeave, function()
@@ -81,20 +90,18 @@ function M:_createPopup()
         self:toggle()
     end, {})
 
-    self.workflowPopup:map("n", FIConfig.config.keyMap.startWorkflow, function()
-        local index = vim.api.nvim_win_get_cursor(0)[1]
-        FIWorkflow:startWorkflow(index)
+    self.workflowPopup:map("n", self.session.config.keyMap.startWorkflow, function()
+        self.session.workflow:startWorkflow(self.workflowIndex)
     end, {})
 
-    self.workflowPopup:map("n", FIConfig.config.keyMap.killWorkflow, function()
-        local index = vim.api.nvim_win_get_cursor(0)[1]
-        FIWorkflow:killWorkflow(index)
+    self.workflowPopup:map("n", self.session.config.keyMap.killWorkflow, function()
+        self.session.workflow:killWorkflow(self.workflowIndex)
     end, {})
 end
 
 function M:_setWorkflowBufnr()
     local bufnrContents = {}
-    for i, workflow in ipairs(FIWorkflow.workflows) do
+    for i, workflow in ipairs(self.session.workflow.workflows) do
         table.insert(bufnrContents, "" .. i .. ". " .. workflow.definition.name)
     end
     vim.api.nvim_buf_set_lines(
@@ -107,11 +114,11 @@ function M:_setWorkflowBufnr()
 end
 
 function M:_setStatusBufnr(workflowIdx)
-    if #FIWorkflow.workflows == 0 then
+    if #self.session.workflow.workflows == 0 then
         return
     end
 
-    local selectedWorkflow = FIWorkflow.workflows[workflowIdx]
+    local selectedWorkflow = self.session.workflow.workflows[workflowIdx]
     local bufnrContents = {
         "Name: " .. selectedWorkflow.definition.name,
         "Source file: " .. selectedWorkflow.sourceFile,

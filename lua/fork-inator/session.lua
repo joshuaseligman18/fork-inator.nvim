@@ -1,12 +1,18 @@
 local Path = require("plenary.path")
 local ScanDir = require("plenary.scandir")
 local FIConfig = require("fork-inator.config")
+local FIWindow = require("fork-inator.window")
+local FIWorkflow = require("fork-inator.workflow")
 
 local fiDataPath = Path.new(vim.fn.stdpath("data") .. "/fork-inator")
 
 local M = {}
 
-function M:initializeSession()
+---@param opts ForkInatorConfig
+function M:initializeSession(opts)
+    FIConfig:loadConfig(opts)
+    self.config = FIConfig.config
+
     if not fiDataPath:exists() then
         fiDataPath:mkdir()
     end
@@ -22,6 +28,12 @@ function M:initializeSession()
     dataPath:mkdir()
 
     self:cleanUpOldSessions()
+
+    self.window = FIWindow
+    self.workflow = FIWorkflow
+
+    FIWorkflow:loadWorkflows(self)
+    FIWindow:init(self)
 end
 
 function M:cleanUpOldSessions()
@@ -43,7 +55,7 @@ function M:cleanUpOldSessions()
             sec = string.sub(dateSub, 18, 19),
         })
 
-        if self.sessionTime - folderTime > FIConfig.config.logRetention then
+        if self.sessionTime - folderTime > self.config.logRetention then
             Path.new(logFolder):rmdir()
         end
     end

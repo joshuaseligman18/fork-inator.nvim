@@ -1,7 +1,6 @@
 local Path = require("plenary.path")
 local ScanDir = require("plenary.scandir")
 local FIUtil = require("fork-inator.util")
-local FISession = require("fork-inator.session")
 
 ---@class ForkInatorWorkflowDefinititon
 ---@field name string Name of the workflow
@@ -33,7 +32,9 @@ local M = {}
 ---@type ForkInatorWorkflow[]
 M.workflows = {}
 
-function M:loadWorkflows()
+---@param session any The parent session
+function M:loadWorkflows(session)
+    self.session = session
     local globalWorkflowPath = Path.new(GLOBAL_WORKFLOW_DIR)
     if globalWorkflowPath:exists() and globalWorkflowPath:is_dir() then
         self:_readWorkflowFiles(globalWorkflowPath:absolute())
@@ -74,7 +75,7 @@ end
 
 function M:_createWorkflowScripts()
     for _, workflow in ipairs(self.workflows) do
-        local workflowFilePrefix = FISession.dataFolder
+        local workflowFilePrefix = self.session.dataFolder
             .. "/"
             .. string.gsub(string.sub(workflow.sourceFile, 1, -5), "/", "-")
         local scriptFileName = workflowFilePrefix .. "-script.sh"
@@ -155,7 +156,7 @@ function M:startWorkflow(index)
     local stderrFile = io.open(selectedWorkflow.stderrFile, "a")
     assert(stderrFile ~= nil, "Failed to open " .. selectedWorkflow.stderrFile)
 
-    stdoutFile:write("Starting workflow at " .. os.date() .. "\n")
+    stdoutFile:write("Starting workflow on " .. os.date() .. "\n")
 
     selectedWorkflow.status = ForkInatorStatus.RUNNING
 
@@ -176,14 +177,16 @@ function M:startWorkflow(index)
         stdoutFile:write(
             "Exited with status code "
                 .. obj.code
-                .. " at "
+                .. " on "
                 .. os.date()
-                .. "\n"
+                .. "\n\n"
         )
         stdoutFile:close()
         stderrFile:close()
         selectedWorkflow.status = ForkInatorStatus.DEAD
+        self.session.window:requestStatusUpdate(index)
     end)
+    self.session.window:requestStatusUpdate(index)
 end
 
 ---@param index number Index of the workflow to kill
