@@ -16,12 +16,13 @@ local FIUtil = require("fork-inator.util")
 ---@field stderrFile string
 ---@field status ForkInatorStatus
 ---@field job any
+---@field exitCode number
 
 ---@enum ForkInatorStatus
 ForkInatorStatus = {
-    NOT_STARTED = 0,
-    RUNNING = 1,
-    DEAD = 2,
+    NOT_STARTED = "Not started",
+    RUNNING = "Running",
+    DEAD = "Dead",
 }
 
 local GLOBAL_WORKFLOW_DIR = vim.fn.stdpath("config")
@@ -184,6 +185,7 @@ function M:startWorkflow(index)
         stdoutFile:close()
         stderrFile:close()
         selectedWorkflow.status = ForkInatorStatus.DEAD
+        selectedWorkflow.exitCode = obj.code
         self.session.window:requestStatusUpdate(index)
     end)
     self.session.window:requestStatusUpdate(index)

@@ -135,6 +135,10 @@ function M:_setStatusBufnr(workflowIdx)
         "Work directory: " .. selectedWorkflow.definition.workDir,
         "Status: " .. selectedWorkflow.status,
     }
+    if selectedWorkflow.status == ForkInatorStatus.DEAD then
+        table.insert(bufnrContents, "Exit code: " .. selectedWorkflow.exitCode)
+    end
+
     vim.api.nvim_buf_set_lines(
         self.statusPopup.bufnr,
         0,
