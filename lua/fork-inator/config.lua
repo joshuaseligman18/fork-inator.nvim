@@ -5,7 +5,6 @@
 ---@class ForkInatorKeymaps
 ---@field startWorkflow string Keymap to start a workflow
 ---@field killWorkflow string Keymap to kill a workflow
----@field toggleLogs string Keymap to toggle the log view
 
 local M = {}
 
@@ -17,7 +16,6 @@ local function getDefaultConfig()
         keyMap = {
             startWorkflow = "<leader>fs",
             killWorkflow = "<leader>fk",
-            toggleLogs = "<leader>fl",
         },
     }
     return defaultConfig
@@ -38,7 +36,6 @@ function M:loadConfig(opts)
             or defaultConfig.keyMap.startWorkflow,
         killWorkflow = opts.keyMap.killWorkflow
             or defaultConfig.keyMap.killWorkflow,
-        toggleLogs = opts.keyMap.toggleLogs or defaultConfig.keyMap.toggleLogs,
     }
 
     ---@type ForkInatorConfig
