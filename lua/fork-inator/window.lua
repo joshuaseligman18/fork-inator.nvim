@@ -87,13 +87,29 @@ function M:_createPopup()
         },
     })
 
-    self.logPopup = Popup({
+    self.stdoutPopup = Popup({
         enter = false,
         focusable = true,
         border = {
             style = "single",
             text = {
-                top = "Workflow logs",
+                top = "Workflow logs (stdout)",
+                top_align = "center",
+            },
+        },
+        buf_options = {
+            modifiable = true,
+            readonly = true,
+        },
+    })
+
+    self.stderrPopup = Popup({
+        enter = false,
+        focusable = true,
+        border = {
+            style = "single",
+            text = {
+                top = "Workflow logs (stderr)",
                 top_align = "center",
             },
         },
@@ -110,7 +126,10 @@ function M:_createPopup()
 
     self.logBox = Layout.Box({
         Layout.Box(self.workflowPopup, { size = "30%" }),
-        Layout.Box(self.logPopup, { size = "70%" }),
+        Layout.Box({
+            Layout.Box(self.stdoutPopup, { size = "50%" }),
+            Layout.Box(self.stderrPopup, { size = "50%" }),
+        }, { size = "70%", dir = "col" }),
     }, { dir = "row" })
 
     self.areLogsOpen = false
@@ -167,7 +186,11 @@ function M:_createPopup()
         self:toggle()
     end, {})
 
-    self.logPopup:map("n", "<esc>", function()
+    self.stdoutPopup:map("n", "<esc>", function()
+        self:toggle()
+    end, {})
+
+    self.stderrPopup:map("n", "<esc>", function()
         self:toggle()
     end, {})
 end
@@ -217,20 +240,37 @@ function M:_setLogBufnr(workflowIdx)
     end
 
     local selectedWorkflow = self.session.workflow.workflows[workflowIdx]
-    local bufnrContents = {}
 
     local outFile = io.open(selectedWorkflow.stdoutFile)
     assert(outFile ~= nil)
+
+    local outBufnrContents = {}
     for line in outFile:lines() do
-        table.insert(bufnrContents, line)
+        table.insert(outBufnrContents, line)
     end
 
     vim.api.nvim_buf_set_lines(
-        self.logPopup.bufnr,
+        self.stdoutPopup.bufnr,
         0,
         -1,
         true,
-        bufnrContents
+        outBufnrContents
+    )
+
+    local errFile = io.open(selectedWorkflow.stderrFile)
+    assert(errFile ~= nil)
+
+    local errBufnrContents = {}
+    for line in errFile:lines() do
+        table.insert(errBufnrContents, line)
+    end
+
+    vim.api.nvim_buf_set_lines(
+        self.stderrPopup.bufnr,
+        0,
+        -1,
+        true,
+        errBufnrContents
     )
 end
 
