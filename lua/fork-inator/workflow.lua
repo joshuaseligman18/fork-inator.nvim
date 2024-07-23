@@ -167,11 +167,14 @@ function M:startWorkflow(index)
         stdout = function(err, data)
             if data ~= nil and err == nil then
                 stdoutFile:write(data)
+                stdoutFile:flush()
+                self.session.window:requestLogUpdate(index)
             end
         end,
         stderr = function(err, data)
             if data ~= nil and err == nil then
                 stderrFile:write(data)
+                stderrFile:flush()
             end
         end,
     }, function(obj)
@@ -187,6 +190,7 @@ function M:startWorkflow(index)
         selectedWorkflow.status = ForkInatorStatus.DEAD
         selectedWorkflow.exitCode = obj.code
         self.session.window:requestStatusUpdate(index)
+        self.session.window:requestLogUpdate(index)
     end)
     self.session.window:requestStatusUpdate(index)
 end

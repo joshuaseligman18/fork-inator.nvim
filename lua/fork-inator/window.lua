@@ -28,16 +28,27 @@ function M:toggleLogs()
     self.areLogsOpen = not self.areLogsOpen
     if self.areLogsOpen then
         self.layout:update(self.logBox)
+        self:_setLogBufnr(self.workflowIndex)
     else
         self.layout:update(self.statusBox)
+        self:_setStatusBufnr(self.workflowIndex)
     end
 end
 
 ---@param sourceIndex number The workflow index requesting a status buffer update
 function M:requestStatusUpdate(sourceIndex)
-    if self.workflowIndex == sourceIndex then
+    if not self.areLogsOpen and self.workflowIndex == sourceIndex then
         vim.schedule(function()
             self:_setStatusBufnr(sourceIndex)
+        end)
+    end
+end
+
+---@param sourceIndex number The workflow index requesting a log buffer update
+function M:requestLogUpdate(sourceIndex)
+    if self.areLogsOpen and self.workflowIndex == sourceIndex then
+        vim.schedule(function()
+            self:_setLogBufnr(sourceIndex)
         end)
     end
 end
@@ -60,25 +71,9 @@ function M:_createPopup()
     })
     self:_setWorkflowBufnr()
 
-    self.logPopup = Popup({
-        enter = false,
-        focusable = false,
-        border = {
-            style = "single",
-            text = {
-                top = "Workflow logs",
-                top_align = "center",
-            },
-        },
-        buf_options = {
-            modifiable = true,
-            readonly = true,
-        },
-    })
-
     self.statusPopup = Popup({
         enter = false,
-        focusable = false,
+        focusable = true,
         border = {
             style = "single",
             text = {
@@ -92,14 +87,30 @@ function M:_createPopup()
         },
     })
 
-    self.logBox = Layout.Box({
-        Layout.Box(self.workflowPopup, { size = "30%" }),
-        Layout.Box(self.logPopup, { size = "70%" }),
-    }, { dir = "row" })
+    self.logPopup = Popup({
+        enter = false,
+        focusable = true,
+        border = {
+            style = "single",
+            text = {
+                top = "Workflow logs",
+                top_align = "center",
+            },
+        },
+        buf_options = {
+            modifiable = true,
+            readonly = true,
+        },
+    })
 
     self.statusBox = Layout.Box({
         Layout.Box(self.workflowPopup, { size = "30%" }),
         Layout.Box(self.statusPopup, { size = "70%" }),
+    }, { dir = "row" })
+
+    self.logBox = Layout.Box({
+        Layout.Box(self.workflowPopup, { size = "30%" }),
+        Layout.Box(self.logPopup, { size = "70%" }),
     }, { dir = "row" })
 
     self.areLogsOpen = false
@@ -114,11 +125,11 @@ function M:_createPopup()
 
     self.workflowPopup:on(event.CursorMoved, function()
         self.workflowIndex = vim.api.nvim_win_get_cursor(0)[1]
-        self:_setStatusBufnr(self.workflowIndex)
-    end)
-
-    self.workflowPopup:on(event.BufLeave, function()
-        self:toggle()
+        if self.areLogsOpen then
+            self:_setLogBufnr(self.workflowIndex)
+        else
+            self:_setStatusBufnr(self.workflowIndex)
+        end
     end)
 
     self.workflowPopup:map("n", "<esc>", function()
@@ -151,6 +162,14 @@ function M:_createPopup()
         end,
         {}
     )
+
+    self.statusPopup:map("n", "<esc>", function()
+        self:toggle()
+    end, {})
+
+    self.logPopup:map("n", "<esc>", function()
+        self:toggle()
+    end, {})
 end
 
 function M:_setWorkflowBufnr()
@@ -185,6 +204,29 @@ function M:_setStatusBufnr(workflowIdx)
 
     vim.api.nvim_buf_set_lines(
         self.statusPopup.bufnr,
+        0,
+        -1,
+        true,
+        bufnrContents
+    )
+end
+
+function M:_setLogBufnr(workflowIdx)
+    if #self.session.workflow.workflows == 0 then
+        return
+    end
+
+    local selectedWorkflow = self.session.workflow.workflows[workflowIdx]
+    local bufnrContents = {}
+
+    local outFile = io.open(selectedWorkflow.stdoutFile)
+    assert(outFile ~= nil)
+    for line in outFile:lines() do
+        table.insert(bufnrContents, line)
+    end
+
+    vim.api.nvim_buf_set_lines(
+        self.logPopup.bufnr,
         0,
         -1,
         true,
