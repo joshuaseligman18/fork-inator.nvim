@@ -33,8 +33,6 @@ function M:toggleLogs()
     end
 end
 
-function M:_createLayout() end
-
 ---@param sourceIndex number The workflow index requesting a status buffer update
 function M:requestStatusUpdate(sourceIndex)
     if self.workflowIndex == sourceIndex then
