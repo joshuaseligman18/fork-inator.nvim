@@ -7,6 +7,7 @@ local M = {}
 ---@param session any The parent session
 function M:init(session)
     self.isOpen = false
+    self.areLogsOpen = false
     self.session = session
 end
 
@@ -17,6 +18,19 @@ function M:toggle()
         self:_createPopup()
     end
     self.isOpen = not self.isOpen
+end
+
+function M:toggleLogs()
+    if not self.isOpen then
+        return
+    end
+
+    self.areLogsOpen = not self.areLogsOpen
+    if self.areLogsOpen then
+        self.layout:update(self.logBox)
+    else
+        self.layout:update(self.statusBox)
+    end
 end
 
 ---@param sourceIndex number The workflow index requesting a status buffer update
@@ -46,6 +60,22 @@ function M:_createPopup()
     })
     self:_setWorkflowBufnr()
 
+    self.logPopup = Popup({
+        enter = false,
+        focusable = false,
+        border = {
+            style = "single",
+            text = {
+                top = "Workflow logs",
+                top_align = "center",
+            },
+        },
+        buf_options = {
+            modifiable = true,
+            readonly = true,
+        },
+    })
+
     self.statusPopup = Popup({
         enter = false,
         focusable = false,
@@ -62,11 +92,17 @@ function M:_createPopup()
         },
     })
 
+    self.logBox = Layout.Box({
+        Layout.Box(self.workflowPopup, { size = "30%" }),
+        Layout.Box(self.logPopup, { size = "70%" }),
+    }, { dir = "row" })
+
     self.statusBox = Layout.Box({
         Layout.Box(self.workflowPopup, { size = "30%" }),
         Layout.Box(self.statusPopup, { size = "70%" }),
     }, { dir = "row" })
 
+    self.areLogsOpen = false
     self.layout = Layout({
         position = "50%",
         size = {
@@ -106,6 +142,15 @@ function M:_createPopup()
         end,
         {}
     )
+
+    self.workflowPopup:map(
+        "n",
+        self.session.config.keyMap.toggleLogs,
+        function()
+            self:toggleLogs()
+        end,
+        {}
+    )
 end
 
 function M:_setWorkflowBufnr()
@@ -122,7 +167,6 @@ function M:_setWorkflowBufnr()
     )
 end
 
----@param workflowIdx number The workflow index to update the status buffer with
 function M:_setStatusBufnr(workflowIdx)
     if #self.session.workflow.workflows == 0 then
         return
