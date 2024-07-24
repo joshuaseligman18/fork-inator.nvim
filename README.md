@@ -91,3 +91,13 @@ The table returned by a workflow file should match the following type definition
 
 *Note: The script should be a valid shell script as a .sh file gets created with
 the provided script.*
+
+## Using Fork-inator
+Once the plugin is set up, you can access the workflows by running the
+toggle function. Once opened, multiple windows will appear, including a list
+of all workflows, the status of the workflow the cursor is on, and the logs of
+the workflow (accessible by toggling the logs). Moving the workflow between these
+windows can be done with the built-in key bindings for navigating multiple windows
+(see corresponding ![Neovim docs](https://neovim.io/doc/user/windows.html#_4.-moving-cursor-to-other-windows)).
+All logs are persisted in files, which you can always access in the Neovim data
+directory (~/.local/share/nvim/fork-inator).
