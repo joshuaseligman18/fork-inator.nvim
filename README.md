@@ -98,6 +98,6 @@ toggle function. Once opened, multiple windows will appear, including a list
 of all workflows, the status of the workflow the cursor is on, and the logs of
 the workflow (accessible by toggling the logs). Moving the workflow between these
 windows can be done with the built-in key bindings for navigating multiple windows
-(see corresponding ![Neovim docs](https://neovim.io/doc/user/windows.html#_4.-moving-cursor-to-other-windows)).
+(see corresponding [Neovim docs](https://neovim.io/doc/user/windows.html#_4.-moving-cursor-to-other-windows)).
 All logs are persisted in files, which you can always access in the Neovim data
 directory (~/.local/share/nvim/fork-inator).
