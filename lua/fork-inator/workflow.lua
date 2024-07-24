@@ -4,7 +4,7 @@ local FIUtil = require("fork-inator.util")
 
 ---@class ForkInatorWorkflowDefinititon
 ---@field name string Name of the workflow
----@field access string[] Array of NeoVim buffers (absolute paths) which the workflow can be called from (default global if not provided)
+---@field access string[] Array of Neovim buffers (absolute paths) which the workflow can be called from (default global if not provided)
 ---@field workDir string Working directory of the script
 ---@field script string Script to run
 
